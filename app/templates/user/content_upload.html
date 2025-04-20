@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Course Add Form</title>
+    <style>
+        body {
+            background-color: #e9f5f9;
+            margin: 0;
+            height: 100vh;
+            font-family: Arial, sans-serif;
+        }
+
+        .form-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+        }
+
+        .form-card {
+            width: 360px;
+            background-color: #ffffff;
+            border: 2px solid #007acc;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .form-header {
+            background-color: #007acc;
+            color: #ffffff;
+            font-size: 22px;
+            text-align: center;
+            padding: 18px;
+        }
+
+        .form-body {
+            padding: 20px 30px;
+        }
+
+        .form-body label {
+            font-weight: bold;
+            font-size: 14px;
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        .form-body input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .upload-group {
+            position: relative;
+            margin-bottom: 16px;
+        }
+
+        .upload-group input[type="file"] {
+            width: 100%;
+            padding: 8px 36px 8px 8px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #fff;
+            box-sizing: border-box;
+        }
+
+        .remove-btn {
+            position: absolute;
+            right: 6px;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: #ff4d4d;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 14px;
+            width: 22px;
+            height: 22px;
+            line-height: 20px;
+            text-align: center;
+            cursor: pointer;
+            display: none;
+        }
+
+        .submit-btn {
+            padding: 12px 30px;
+            font-size: 15px;
+            background-color: #007acc;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .form-footer {
+            background-color: #f0f0f0;
+            padding: 10px;
+            font-size: 11px;
+            color: #666;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+<div class="form-container">
+    <div class="form-card">
+        <div class="form-header">Add Course Files</div>
+        <div class="form-body">
+            <label for="course_title">Course Title</label>
+            <input type="text" name="course_title" placeholder="Enter course title" />
+
+            <label>Upload PDF</label>
+            <div id="fileUploadsContainer"></div>
+
+            <input type="submit" value="Submit" class="submit-btn" id="submitBtn" />
+        </div>
+        <div class="form-footer">
+            <footer style="text-align: center; padding: 1px; background-color: #f2f2f2;">
+                <p>&copy; 2025 Innospace. All rights reserved.</p>
+            </footer>
+        </div>
+    </div>
+</div>
+
+<script>
+    const fileUploadsContainer = document.getElementById('fileUploadsContainer');
+
+    function addFileInput() {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'upload-group';
+
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.name = 'pdf[]';
+        input.accept = 'application/pdf';
+        input.multiple = true;
+
+        const removeBtn = document.createElement('button');
+        removeBtn.innerHTML = '×';
+        removeBtn.className = 'remove-btn';
+        removeBtn.title = 'Remove this file';
+
+        removeBtn.addEventListener('click', function (e) {
+            e.preventDefault();
+            fileUploadsContainer.removeChild(wrapper);
+            ensureBlankInputExists();
+        });
+
+        input.addEventListener('change', function () {
+            if (input.files.length > 0) {
+                removeBtn.style.display = 'inline-block';
+                ensureBlankInputExists();
+            } else {
+                removeBtn.style.display = 'none';
+            }
+        });
+
+        wrapper.appendChild(input);
+        wrapper.appendChild(removeBtn);
+        fileUploadsContainer.appendChild(wrapper);
+
+        ensureBlankInputExists();
+    }
+
+    function ensureBlankInputExists() {
+        const fileInputs = fileUploadsContainer.querySelectorAll('input[type="file"]');
+        const hasEmpty = Array.from(fileInputs).some(input => input.files.length === 0);
+        if (!hasEmpty) {
+            addFileInput();
+        }
+    }
+
+    addFileInput();
+
+    // Submit button hover effect (JavaScript-only)
+    const submitBtn = document.getElementById('submitBtn');
+
+    submitBtn.addEventListener('mouseover', function () {
+        submitBtn.style.backgroundColor = '#005b99';
+        submitBtn.style.transform = 'scale(1.05)';
+        submitBtn.style.boxShadow = '0 8px 16px rgba(0, 122, 204, 0.3)';
+        submitBtn.style.transition = 'all 0.3s ease';
+    });
+
+    submitBtn.addEventListener('mouseout', function () {
+        submitBtn.style.backgroundColor = '#007acc';
+        submitBtn.style.transform = 'scale(1)';
+        submitBtn.style.boxShadow = 'none';
+    });
+</script>
+
+</body>
+</html>
