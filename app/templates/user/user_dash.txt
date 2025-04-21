@@ -3,6 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Cache-Control" content="no-store" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
   <title>User Dashboard</title>
 </head>
 <body>
@@ -17,8 +20,46 @@
     top: 0;
     left: 0;
     z-index: 1000;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 0 20px;
+    font-family: Arial, sans-serif;
+    gap: 16px;
+    box-sizing: border-box;
   ">
-    <!-- Empty navbar for now -->
+    <!-- Username & Icon -->
+    <div style="
+      display: flex;
+      align-items: center;
+      color: white;
+      font-size: 14px;
+    ">
+      <svg xmlns="http://www.w3.org/2000/svg"
+           width="24" height="24" fill="white" viewBox="0 0 24 24"
+           style="margin-right: 8px;">
+        <path d="M12 12c2.7 0 5-2.3 5-5s-2.3-5-5-5-5 2.3-5 5 2.3 5 5 5zm0 2c-3.3 0-10 1.7-10 5v3h20v-3c0-3.3-6.7-5-10-5z"/>
+      </svg>
+      <span>{{ user_name }}</span>
+    </div>
+
+    <!-- Logout Button -->
+    <form action="{{ url_for('main.user_logout') }}" method="post" style="margin: 0;">
+      <button type="submit" style="
+        background: white;
+        color: #182848;
+        border: none;
+        padding: 8px 14px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 14px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        transition: all 0.3s ease;
+      "
+      onmouseover="this.style.background='#f0f0f0';"
+      onmouseout="this.style.background='white';"
+      >Logout</button>
+    </form>
   </div>
 
   <!-- Main Content Area with Border and Shadow -->
@@ -26,8 +67,9 @@
     margin-top: 70px;
     margin-bottom: 60px;
     padding: 20px;
-    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2); /* Shadow effect */
-    border-radius: 5px; /* Optional: for rounded corners */
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+    border-radius: 5px;
+    position: relative;
   ">
 
     <!-- Header with Title and Add Button -->
@@ -53,7 +95,7 @@
       >Add Subject</button>
     </div>
 
-    <!-- Search Bar (Left-Aligned) -->
+    <!-- Search Bar -->
     <input type="text" placeholder="Search..." style="
       width: 100%;
       max-width: 400px;
@@ -65,10 +107,90 @@
       outline: none;
     ">
 
+    <!-- Content Field with Checkbox, Text Input, Rename and Save Button -->
+    <div style="
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #f9f9f9;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      padding: 10px 15px;
+      margin-top: 20px;
+      box-shadow: 0px 2px 6px rgba(0,0,0,0.1);
+      font-family: Arial, sans-serif;
+    ">
+
+      <!-- Left Side: Checkbox and Text Input -->
+      <div style="display: flex; align-items: center; gap: 10px; flex: 1;">
+        <input type="checkbox" style="transform: scale(1.2); cursor: pointer;" />
+        <input type="text" placeholder="Enter text..." style="
+          flex: 1;
+          padding: 8px 10px;
+          border: 1px solid #4b6cb7;
+          border-radius: 4px;
+          font-size: 14px;
+          outline: none;
+        " />
+      </div>
+
+      <!-- Right Side: Rename and Save Buttons -->
+      <div style="display: flex; gap: 10px; margin-left: 10px;">
+        <button style="
+          background: linear-gradient(90deg, #4b6cb7, #182848);
+          color: white;
+          border: none;
+          padding: 8px 14px;
+          border-radius: 5px;
+          cursor: pointer;
+          font-size: 14px;
+          box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+          transition: all 0.3s ease;
+        "
+        onmouseover="this.style.opacity='0.9';"
+        onmouseout="this.style.opacity='1';"
+        >Rename</button>
+
+        <button style="
+          background: linear-gradient(90deg, #4b6cb7, #182848);
+          color: white;
+          border: none;
+          padding: 8px 14px;
+          border-radius: 5px;
+          cursor: pointer;
+          font-size: 14px;
+          box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+          transition: all 0.3s ease;
+        "
+        onmouseover="this.style.opacity='0.9';"
+        onmouseout="this.style.opacity='1';"
+        >Save</button>
+      </div>
+    </div>
+
     <p>Page content will go here...</p>
+
+    <!-- Download Button -->
+    <button style="
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      background: linear-gradient(90deg, #4b6cb7, #182848);
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 14px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+      transition: all 0.3s ease;
+    "
+    onmouseover="this.style.opacity='0.9';"
+    onmouseout="this.style.opacity='1';"
+    >Download</button>
   </div>
 
-  <!-- Footer Section (Compact Version) -->
+  <!-- Footer Section -->
   <div style="
     width: 100%;
     background: linear-gradient(90deg, #182848, #4b6cb7);
