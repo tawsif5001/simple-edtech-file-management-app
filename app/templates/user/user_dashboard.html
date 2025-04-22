@@ -161,8 +161,8 @@
       box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.1);
     ">
       <div class="content-left" style="display: flex; align-items: center; gap: 10px; flex: 1;">
-        <input type="checkbox" style="transform: scale(1.2); cursor: pointer;" />
-        <input type="text" placeholder="Enter text..." style="
+        <input type="checkbox" class="subject-checkbox" style="transform: scale(1.2); cursor: pointer; display: none;" />
+        <input type="text" placeholder="Enter subject..." class="subject-input" style="
           flex: 1;
           padding: 8px 10px;
           border: 1px solid #4b6cb7;
@@ -172,7 +172,8 @@
         " />
       </div>
       <div class="content-right" style="display: flex; gap: 10px; margin-left: 10px;">
-        <button type="button" style="
+        <button type="button" class="rename-button" style="
+          display: none;
           background: linear-gradient(90deg, #4b6cb7, #182848);
           color: white;
           border: none;
@@ -183,7 +184,7 @@
           box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
           transition: all 0.3s ease;
         ">Rename</button>
-        <button type="button" style="
+        <button type="button" class="save-button" style="
           background: linear-gradient(90deg, #4b6cb7, #182848);
           color: white;
           border: none;
@@ -197,6 +198,7 @@
       </div>
     </div>
   </template>
+  
 
   <!-- JavaScript to add subjects dynamically -->
   <script>
@@ -204,9 +206,28 @@
       const template = document.getElementById('course-template');
       const container = document.getElementById('subject-container');
       const clone = template.content.cloneNode(true);
-      container.appendChild(clone);
+  
+      const saveButton = clone.querySelector('.save-button');
+      const checkbox = clone.querySelector('.subject-checkbox');
+      const renameButton = clone.querySelector('.rename-button');
+      const input = clone.querySelector('.subject-input');
+  
+      saveButton.addEventListener('click', () => {
+        if (input.value.trim() !== '') {
+          checkbox.style.display = 'inline-block';
+          renameButton.style.display = 'inline-block';
+          saveButton.disabled = true;
+          input.disabled = true;
+        } else {
+          alert('Please enter a subject name before saving.');
+        }
+      });
+  
+      container.insertBefore(clone, container.firstChild);
     }
   </script>
+  
+  
 
 </body>
 </html>
