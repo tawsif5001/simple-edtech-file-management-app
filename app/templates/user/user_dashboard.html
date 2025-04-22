@@ -79,7 +79,7 @@
       align-items: center;
     ">
       <h2 style="margin: 0;">Subject List</h2>
-      <button onclick="addSubject()" style="
+      <button id="add-subject-btn"  onclick="addSubject()" style="
         background: linear-gradient(90deg, #4b6cb7, #182848);
         color: white;
         border: none;
@@ -203,6 +203,9 @@
   <!-- JavaScript to add subjects dynamically -->
   <script>
     function addSubject() {
+      const addButton = document.querySelector('#add-subject-btn');
+      addButton.disabled = true; // Disable add button right away
+  
       const template = document.getElementById('course-template');
       const container = document.getElementById('subject-container');
       const clone = template.content.cloneNode(true);
@@ -210,22 +213,62 @@
       const saveButton = clone.querySelector('.save-button');
       const checkbox = clone.querySelector('.subject-checkbox');
       const renameButton = clone.querySelector('.rename-button');
-      const input = clone.querySelector('.subject-input');
+      let input = clone.querySelector('.subject-input');
   
-      saveButton.addEventListener('click', () => {
-        if (input.value.trim() !== '') {
+      let currentElement = input;
+  
+      function handleSave() {
+        const value = currentElement.value.trim();
+        if (value !== '') {
+          const subjectText = document.createElement('span');
+          subjectText.textContent = value;
+          subjectText.style.fontSize = '14px';
+          subjectText.style.flex = '1';
+          subjectText.classList.add('subject-static-text');
+  
+          currentElement.parentNode.replaceChild(subjectText, currentElement);
+          currentElement = subjectText;
+  
           checkbox.style.display = 'inline-block';
           renameButton.style.display = 'inline-block';
-          saveButton.disabled = true;
-          input.disabled = true;
+          saveButton.style.display = 'none';
+  
+          // ✅ Re-enable Add Subject button
+          addButton.disabled = false;
         } else {
           alert('Please enter a subject name before saving.');
         }
-      });
+      }
+  
+      function handleRename() {
+        const editInput = document.createElement('input');
+        editInput.type = 'text';
+        editInput.value = currentElement.textContent;
+        editInput.placeholder = 'Edit subject...';
+        editInput.classList.add('subject-input');
+        editInput.style.flex = '1';
+        editInput.style.padding = '8px 10px';
+        editInput.style.border = '1px solid #4b6cb7';
+        editInput.style.borderRadius = '4px';
+        editInput.style.fontSize = '14px';
+        editInput.style.outline = 'none';
+  
+        currentElement.parentNode.replaceChild(editInput, currentElement);
+        currentElement = editInput;
+  
+        saveButton.style.display = 'inline-block';
+        renameButton.style.display = 'none';
+      }
+  
+      saveButton.addEventListener('click', handleSave);
+      renameButton.addEventListener('click', handleRename);
   
       container.insertBefore(clone, container.firstChild);
     }
   </script>
+  
+  
+  
   
   
 
