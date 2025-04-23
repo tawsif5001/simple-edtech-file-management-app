@@ -108,52 +108,54 @@
     ">
 
     <!-- Dynamic Subjects Container -->
-    <!-- Dynamic Subjects Container -->
-<div id="subject-container" style="margin-top: 20px;">
-  {% for subject in subjects %}
-    <div class="content-field" style="
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      background: #f9f9f9;
-      border: 1px solid #ddd;
-      border-radius: 5px;
-      padding: 10px 15px;
-      margin-top: 20px;
-      box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.1);
-    ">
-      <div class="content-left" style="display: flex; align-items: center; gap: 10px; flex: 1;">
-        <input type="checkbox" class="subject-checkbox" style="transform: scale(1.2); cursor: pointer; display: inline-block;" />
-        <span class="subject-static-text" style="flex: 1; font-size: 14px;">{{ subject.name }}</span>
-      </div>
-      <div class="content-right" style="display: flex; gap: 10px; margin-left: 10px;">
-        <button type="button" class="rename-button" style="
-          background: linear-gradient(90deg, #4b6cb7, #182848);
-          color: white;
-          border: none;
-          padding: 8px 14px;
+    <div id="subject-container" style="margin-top: 20px;">
+      {% for subject in subjects %}
+        <div class="content-field" style="
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          background: #f9f9f9;
+          border: 1px solid #ddd;
           border-radius: 5px;
-          cursor: pointer;
-          font-size: 14px;
-          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-          transition: all 0.3s ease;
-        ">Rename</button>
-        <button type="button" class="save-button" style="
-          display: none;
-          background: linear-gradient(90deg, #4b6cb7, #182848);
-          color: white;
-          border: none;
-          padding: 8px 14px;
-          border-radius: 5px;
-          cursor: pointer;
-          font-size: 14px;
-          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-          transition: all 0.3s ease;
-        ">Save</button>
-      </div>
+          padding: 10px 15px;
+          margin-top: 20px;
+          box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.1);
+        ">
+          <div class="content-left" style="display: flex; align-items: center; gap: 10px; flex: 1;">
+            <input type="checkbox" class="subject-checkbox" style="transform: scale(1.2); cursor: pointer; display: inline-block;" />
+            <span class="subject-static-text" data-id="{{ subject.id }}" style="flex: 1; font-size: 14px;">
+              {{ subject.name }}
+            </span>
+          </div>
+          <div class="content-right" style="display: flex; gap: 10px; margin-left: 10px;">
+            <button type="button" class="rename-button" style="
+              background: linear-gradient(90deg, #4b6cb7, #182848);
+              color: white;
+              border: none;
+              padding: 8px 14px;
+              border-radius: 5px;
+              cursor: pointer;
+              font-size: 14px;
+              box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+              transition: all 0.3s ease;
+            ">Rename</button>
+            <button type="button" class="save-button" style="
+              display: none;
+              background: linear-gradient(90deg, #4b6cb7, #182848);
+              color: white;
+              border: none;
+              padding: 8px 14px;
+              border-radius: 5px;
+              cursor: pointer;
+              font-size: 14px;
+              box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+              transition: all 0.3s ease;
+            ">Save</button>
+          </div>
+        </div>
+      {% endfor %}
     </div>
-  {% endfor %}
-</div>
+    
 
 
    <!-- Download Button -->
@@ -269,7 +271,7 @@
   <script>
     function addSubject() {
       const addButton = document.querySelector('#add-subject-btn');
-      addButton.disabled = true; // Disable add button right away
+      addButton.disabled = true;
   
       const template = document.getElementById('course-template');
       const container = document.getElementById('subject-container');
@@ -279,29 +281,38 @@
       const checkbox = clone.querySelector('.subject-checkbox');
       const renameButton = clone.querySelector('.rename-button');
       let input = clone.querySelector('.subject-input');
-  
       let currentElement = input;
   
+      attachHandlers(saveButton, renameButton, checkbox, currentElement, addButton);
+      container.insertBefore(clone, container.firstChild);
+    }
+  
+    function attachHandlers(saveButton, renameButton, checkbox, currentElement, addButton) {
       function handleSave() {
         const value = currentElement.value.trim();
         if (value !== '') {
-          // ✅ Send to backend
-          fetch("/add_subject", {
+          let subjectId = currentElement.getAttribute('data-id') ||
+                          (currentElement.previousElementSibling && currentElement.previousElementSibling.getAttribute('data-id'));
+  
+          const url = subjectId ? "/update_subject" : "/add_subject";
+          const payload = subjectId
+            ? { subject_id: subjectId, subject_name: value }
+            : { subject_name: value };
+  
+          fetch(url, {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ subject_name: value })
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
           })
           .then(res => res.json())
           .then(data => {
             if (data.message) {
-              // Replace input with static text if saved successfully
               const subjectText = document.createElement('span');
               subjectText.textContent = value;
               subjectText.style.fontSize = '14px';
               subjectText.style.flex = '1';
               subjectText.classList.add('subject-static-text');
+              if (subjectId) subjectText.setAttribute('data-id', subjectId);
   
               currentElement.parentNode.replaceChild(subjectText, currentElement);
               currentElement = subjectText;
@@ -309,13 +320,11 @@
               checkbox.style.display = 'inline-block';
               renameButton.style.display = 'inline-block';
               saveButton.style.display = 'none';
+              if (addButton) addButton.disabled = false;
   
-              // ✅ Re-enable Add Subject button
-              addButton.disabled = false;
-  
-              alert("✅ Subject saved successfully!");
+              alert(`✅ Subject ${subjectId ? 'updated' : 'saved'} successfully!`);
             } else {
-              alert("⚠️ Failed to save subject: " + (data.error || "Unknown error"));
+              alert("⚠️ Operation failed: " + (data.error || "Unknown error"));
             }
           })
           .catch(err => {
@@ -340,6 +349,10 @@
         editInput.style.fontSize = '14px';
         editInput.style.outline = 'none';
   
+        if (currentElement.hasAttribute('data-id')) {
+          editInput.setAttribute('data-id', currentElement.getAttribute('data-id'));
+        }
+  
         currentElement.parentNode.replaceChild(editInput, currentElement);
         currentElement = editInput;
   
@@ -349,10 +362,22 @@
   
       saveButton.addEventListener('click', handleSave);
       renameButton.addEventListener('click', handleRename);
-  
-      container.insertBefore(clone, container.firstChild);
     }
+  
+    // 🔁 Auto-initialize handlers for existing subjects
+    window.onload = () => {
+      const subjectItems = document.querySelectorAll('.content-field');
+      subjectItems.forEach(item => {
+        const saveBtn = item.querySelector('.save-button');
+        const renameBtn = item.querySelector('.rename-button');
+        const checkbox = item.querySelector('.subject-checkbox');
+        const staticText = item.querySelector('.subject-static-text');
+        const addBtn = document.querySelector('#add-subject-btn');
+        attachHandlers(saveBtn, renameBtn, checkbox, staticText, addBtn);
+      });
+    };
   </script>
+  
   
   
   

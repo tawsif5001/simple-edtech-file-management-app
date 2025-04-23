@@ -20,3 +20,12 @@ def get_subjects_for_user(user_id):
     subjects = conn.execute('SELECT * FROM subjects WHERE user_id = ?', (user_id,)).fetchall()
     conn.close()
     return subjects
+
+def update_subject(subject_id, user_id, new_name):
+    conn = get_db_connection()
+    conn.execute(
+        'UPDATE subjects SET name = ? WHERE id = ? AND user_id = ?',
+        (new_name, subject_id, user_id)
+    )
+    conn.commit()
+    conn.close()

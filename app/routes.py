@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session, make_response, jsonify
 from werkzeug.security import check_password_hash, generate_password_hash
-from .models import get_db_connection, add_subject, get_subjects_for_user
+from .models import get_db_connection, add_subject, get_subjects_for_user, update_subject  # ✅ included update_subject
 import sqlite3
 
 main = Blueprint('main', __name__)
@@ -99,7 +99,7 @@ def user_login():
     response.headers['Expires'] = '0'
     return response
 
-# ✅ User Dashboard Route (UPDATED ✅)
+# ✅ User Dashboard Route
 @main.route('/user-dashboard')
 def user_dashboard():
     if 'user_id' not in session:
@@ -148,3 +148,19 @@ def add_subject_route():
     add_subject(user_id, subject_name)
 
     return jsonify({'message': 'Subject added successfully'})
+
+# ✅ Update Subject API Route (Step 2)
+@main.route('/update_subject', methods=['POST'])
+def update_subject_route():
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    data = request.get_json()
+    subject_id = data.get('subject_id')
+    new_name = data.get('subject_name')
+
+    if not subject_id or not new_name:
+        return jsonify({'error': 'Missing data'}), 400
+
+    update_subject(subject_id, session['user_id'], new_name)
+    return jsonify({'message': 'Subject updated successfully'})
