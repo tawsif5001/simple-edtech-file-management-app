@@ -24,6 +24,16 @@ def setup_database():
     )
     ''')
 
+    # ✅ Create subjects table
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS subjects (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        name TEXT NOT NULL,
+        FOREIGN KEY (user_id) REFERENCES users(id)
+    )
+    ''')
+
     # ✅ Insert one admin manually
     admin_email = 'admin@example.com'
     admin_password = generate_password_hash('admin123', method='pbkdf2:sha256')

@@ -1,6 +1,6 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, session, make_response
+from flask import Blueprint, render_template, request, redirect, url_for, flash, session, make_response, jsonify
 from werkzeug.security import check_password_hash, generate_password_hash
-from .models import get_db_connection
+from .models import get_db_connection, add_subject, get_subjects_for_user
 import sqlite3
 
 main = Blueprint('main', __name__)
@@ -22,29 +22,22 @@ def login():
         else:
             flash('Invalid email or password', 'danger')
 
-    # Ensure no cache for the login page
     response = make_response(render_template('admin/admin_login.html'))
     response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0, max-age=0'
     response.headers['Pragma'] = 'no-cache'
     response.headers['Expires'] = '0'
-    
     return response
-
 
 # Admin Logout
 @main.route('/logout')
 def logout():
-    session.clear()  # Clear session data
+    session.clear()
     flash('You have been logged out.', 'info')
-    
-    # After logout, ensure that the browser can't cache the login page
     response = make_response(redirect(url_for('main.login')))
     response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0, max-age=0'
     response.headers['Pragma'] = 'no-cache'
     response.headers['Expires'] = '0'
-
     return response
-
 
 # Admin Dashboard
 @main.route('/dashboard')
@@ -52,7 +45,6 @@ def dashboard():
     if 'admin_id' not in session:
         return redirect(url_for('main.login'))
     return render_template('admin/admin_dashboard.html')
-
 
 # Admin creates a new user
 @main.route('/create-user', methods=['GET', 'POST'])
@@ -80,7 +72,6 @@ def create_user():
 
     return render_template('admin/create_user.html', message=message)
 
-
 # ---------------------------
 # ✅ User Login
 @main.route('/user-login', methods=['GET', 'POST'])
@@ -95,38 +86,38 @@ def user_login():
         user = cursor.fetchone()
         conn.close()
 
-        if user and check_password_hash(user[3], password):  # user[3] is the password field
-            session['user_id'] = user[0]      # assuming user[0] = id
-            session['user_name'] = user[1]    # assuming user[1] = name
+        if user and check_password_hash(user[3], password):
+            session['user_id'] = user[0]
+            session['user_name'] = user[1]
             return redirect(url_for('main.user_dashboard'))
         else:
             return render_template('user/user_login.html', error="Invalid email or password")
 
-    # Ensure no cache for the login page
     response = make_response(render_template('user/user_login.html'))
     response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0, max-age=0'
     response.headers['Pragma'] = 'no-cache'
     response.headers['Expires'] = '0'
-    
     return response
 
-
-# ✅ User Dashboard Route
+# ✅ User Dashboard Route (UPDATED ✅)
 @main.route('/user-dashboard')
 def user_dashboard():
     if 'user_id' not in session:
         return redirect(url_for('main.user_login'))
-    
-    # Prevent caching of this page by adding proper headers
-    response = make_response(render_template('user/user_dashboard.html', user_name=session.get('user_name')))
-    
-    # Cache control headers
+
+    user_id = session['user_id']
+    subjects = get_subjects_for_user(user_id)
+
+    response = make_response(render_template(
+        'user/user_dashboard.html',
+        user_name=session.get('user_name'),
+        subjects=subjects
+    ))
+
     response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0, max-age=0'
     response.headers['Pragma'] = 'no-cache'
     response.headers['Expires'] = '0'
-    
     return response
-
 
 # ✅ User Logout Route
 @main.route('/user-logout', methods=['POST'])
@@ -134,11 +125,26 @@ def user_logout():
     session.pop('user_id', None)
     session.pop('user_name', None)
     flash('You have been logged out.', 'info')
-    
-    # After logout, ensure that the browser can't cache the login page
+
     response = make_response(redirect(url_for('main.user_login')))
     response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0, max-age=0'
     response.headers['Pragma'] = 'no-cache'
     response.headers['Expires'] = '0'
-    
     return response
+
+# ✅ Add Subject API Route
+@main.route('/add_subject', methods=['POST'])
+def add_subject_route():
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    data = request.get_json()
+    subject_name = data.get('subject_name')
+
+    if not subject_name:
+        return jsonify({'error': 'Subject name is required'}), 400
+
+    user_id = session['user_id']
+    add_subject(user_id, subject_name)
+
+    return jsonify({'message': 'Subject added successfully'})

@@ -108,7 +108,53 @@
     ">
 
     <!-- Dynamic Subjects Container -->
-    <div id="subject-container" style="margin-top: 20px;"></div>
+    <!-- Dynamic Subjects Container -->
+<div id="subject-container" style="margin-top: 20px;">
+  {% for subject in subjects %}
+    <div class="content-field" style="
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #f9f9f9;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      padding: 10px 15px;
+      margin-top: 20px;
+      box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.1);
+    ">
+      <div class="content-left" style="display: flex; align-items: center; gap: 10px; flex: 1;">
+        <input type="checkbox" class="subject-checkbox" style="transform: scale(1.2); cursor: pointer; display: inline-block;" />
+        <span class="subject-static-text" style="flex: 1; font-size: 14px;">{{ subject.name }}</span>
+      </div>
+      <div class="content-right" style="display: flex; gap: 10px; margin-left: 10px;">
+        <button type="button" class="rename-button" style="
+          background: linear-gradient(90deg, #4b6cb7, #182848);
+          color: white;
+          border: none;
+          padding: 8px 14px;
+          border-radius: 5px;
+          cursor: pointer;
+          font-size: 14px;
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+          transition: all 0.3s ease;
+        ">Rename</button>
+        <button type="button" class="save-button" style="
+          display: none;
+          background: linear-gradient(90deg, #4b6cb7, #182848);
+          color: white;
+          border: none;
+          padding: 8px 14px;
+          border-radius: 5px;
+          cursor: pointer;
+          font-size: 14px;
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+          transition: all 0.3s ease;
+        ">Save</button>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+
 
    <!-- Download Button -->
 <!-- Content Area Buttons -->
@@ -239,21 +285,43 @@
       function handleSave() {
         const value = currentElement.value.trim();
         if (value !== '') {
-          const subjectText = document.createElement('span');
-          subjectText.textContent = value;
-          subjectText.style.fontSize = '14px';
-          subjectText.style.flex = '1';
-          subjectText.classList.add('subject-static-text');
+          // ✅ Send to backend
+          fetch("/add_subject", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ subject_name: value })
+          })
+          .then(res => res.json())
+          .then(data => {
+            if (data.message) {
+              // Replace input with static text if saved successfully
+              const subjectText = document.createElement('span');
+              subjectText.textContent = value;
+              subjectText.style.fontSize = '14px';
+              subjectText.style.flex = '1';
+              subjectText.classList.add('subject-static-text');
   
-          currentElement.parentNode.replaceChild(subjectText, currentElement);
-          currentElement = subjectText;
+              currentElement.parentNode.replaceChild(subjectText, currentElement);
+              currentElement = subjectText;
   
-          checkbox.style.display = 'inline-block';
-          renameButton.style.display = 'inline-block';
-          saveButton.style.display = 'none';
+              checkbox.style.display = 'inline-block';
+              renameButton.style.display = 'inline-block';
+              saveButton.style.display = 'none';
   
-          // ✅ Re-enable Add Subject button
-          addButton.disabled = false;
+              // ✅ Re-enable Add Subject button
+              addButton.disabled = false;
+  
+              alert("✅ Subject saved successfully!");
+            } else {
+              alert("⚠️ Failed to save subject: " + (data.error || "Unknown error"));
+            }
+          })
+          .catch(err => {
+            console.error("Error:", err);
+            alert("⚠️ Something went wrong.");
+          });
         } else {
           alert('Please enter a subject name before saving.');
         }
@@ -285,6 +353,7 @@
       container.insertBefore(clone, container.firstChild);
     }
   </script>
+  
   
   
   
