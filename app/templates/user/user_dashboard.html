@@ -111,7 +111,25 @@
     <div id="subject-container" style="margin-top: 20px;"></div>
 
    <!-- Download Button -->
-<div style="display: flex; justify-content: flex-end; margin-top: 20px;">
+<!-- Content Area Buttons -->
+<div style="display: flex; justify-content: space-between; margin-top: 20px;">
+  <!-- Delete Button -->
+  <button style="
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+    transition: all 0.3s ease;
+  "
+  onmouseover="this.style.opacity='0.9';"
+  onmouseout="this.style.opacity='1';"
+  >Delete</button>
+
+  <!-- Download Button -->
   <button style="
     background: linear-gradient(90deg, #4b6cb7, #182848);
     color: white;
@@ -127,6 +145,7 @@
   onmouseout="this.style.opacity='1';"
   >Download</button>
 </div>
+
 
 
   <!-- Footer Section -->
