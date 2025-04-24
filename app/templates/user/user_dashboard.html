@@ -161,8 +161,10 @@
    <!-- Download Button -->
 <!-- Content Area Buttons -->
 <div style="display: flex; justify-content: space-between; margin-top: 20px;">
+
+
   <!-- Delete Button -->
-  <button style="
+  <button  id="bulk-delete-btn" style="
     background-color: #e74c3c;
     color: white;
     border: none;
@@ -267,122 +269,162 @@
   </template>
   
 
-  <!-- JavaScript to add subjects dynamically -->
-  <script>
-    function addSubject() {
-      const addButton = document.querySelector('#add-subject-btn');
-      addButton.disabled = true;
-  
-      const template = document.getElementById('course-template');
-      const container = document.getElementById('subject-container');
-      const clone = template.content.cloneNode(true);
-  
-      const saveButton = clone.querySelector('.save-button');
-      const checkbox = clone.querySelector('.subject-checkbox');
-      const renameButton = clone.querySelector('.rename-button');
-      let input = clone.querySelector('.subject-input');
-      let currentElement = input;
-  
-      attachHandlers(saveButton, renameButton, checkbox, currentElement, addButton);
-      container.insertBefore(clone, container.firstChild);
-    }
-  
-    function attachHandlers(saveButton, renameButton, checkbox, currentElement, addButton) {
-      function handleSave() {
-        const value = currentElement.value.trim();
-        if (value !== '') {
-          let subjectId = currentElement.getAttribute('data-id') ||
-                          (currentElement.previousElementSibling && currentElement.previousElementSibling.getAttribute('data-id'));
-  
-          const url = subjectId ? "/update_subject" : "/add_subject";
-          const payload = subjectId
-            ? { subject_id: subjectId, subject_name: value }
-            : { subject_name: value };
-  
-          fetch(url, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload)
-          })
-          .then(res => res.json())
-          .then(data => {
-            if (data.message) {
-              const subjectText = document.createElement('span');
-              subjectText.textContent = value;
-              subjectText.style.fontSize = '14px';
-              subjectText.style.flex = '1';
-              subjectText.classList.add('subject-static-text');
-              if (subjectId) subjectText.setAttribute('data-id', subjectId);
-  
-              currentElement.parentNode.replaceChild(subjectText, currentElement);
-              currentElement = subjectText;
-  
-              checkbox.style.display = 'inline-block';
-              renameButton.style.display = 'inline-block';
-              saveButton.style.display = 'none';
-              if (addButton) addButton.disabled = false;
-  
-              alert(`✅ Subject ${subjectId ? 'updated' : 'saved'} successfully!`);
-            } else {
-              alert("⚠️ Operation failed: " + (data.error || "Unknown error"));
-            }
-          })
-          .catch(err => {
-            console.error("Error:", err);
-            alert("⚠️ Something went wrong.");
-          });
-        } else {
-          alert('Please enter a subject name before saving.');
-        }
+    <!-- JavaScript to add subjects dynamically -->
+    <script>
+      function addSubject() {
+        const addButton = document.querySelector('#add-subject-btn');
+        addButton.disabled = true;
+    
+        const template = document.getElementById('course-template');
+        const container = document.getElementById('subject-container');
+        const clone = template.content.cloneNode(true);
+    
+        const saveButton = clone.querySelector('.save-button');
+        const checkbox = clone.querySelector('.subject-checkbox');
+        const renameButton = clone.querySelector('.rename-button');
+        let input = clone.querySelector('.subject-input');
+        let currentElement = input;
+    
+        attachHandlers(saveButton, renameButton, checkbox, currentElement, addButton);
+        container.insertBefore(clone, container.firstChild);
       }
-  
-      function handleRename() {
-        const editInput = document.createElement('input');
-        editInput.type = 'text';
-        editInput.value = currentElement.textContent;
-        editInput.placeholder = 'Edit subject...';
-        editInput.classList.add('subject-input');
-        editInput.style.flex = '1';
-        editInput.style.padding = '8px 10px';
-        editInput.style.border = '1px solid #4b6cb7';
-        editInput.style.borderRadius = '4px';
-        editInput.style.fontSize = '14px';
-        editInput.style.outline = 'none';
-  
-        if (currentElement.hasAttribute('data-id')) {
-          editInput.setAttribute('data-id', currentElement.getAttribute('data-id'));
+    
+      function attachHandlers(saveButton, renameButton, checkbox, currentElement, addButton) {
+        function handleSave() {
+          const value = currentElement.value.trim();
+          if (value !== '') {
+            let subjectId = currentElement.getAttribute('data-id') ||
+                            (currentElement.previousElementSibling && currentElement.previousElementSibling.getAttribute('data-id'));
+    
+            const url = subjectId ? "/update_subject" : "/add_subject";
+            const payload = subjectId
+              ? { subject_id: subjectId, subject_name: value }
+              : { subject_name: value };
+    
+            fetch(url, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload)
+            })
+            .then(res => res.json())
+            .then(data => {
+              if (data.message) {
+                const subjectText = document.createElement('span');
+                subjectText.textContent = value;
+                subjectText.style.fontSize = '14px';
+                subjectText.style.flex = '1';
+                subjectText.classList.add('subject-static-text');
+                if (subjectId) subjectText.setAttribute('data-id', subjectId);
+    
+                currentElement.parentNode.replaceChild(subjectText, currentElement);
+                currentElement = subjectText;
+    
+                checkbox.style.display = 'inline-block';
+                renameButton.style.display = 'inline-block';
+                saveButton.style.display = 'none';
+                if (addButton) addButton.disabled = false;
+    
+                alert(`✅ Subject ${subjectId ? 'updated' : 'saved'} successfully!`);
+              } else {
+                alert("⚠️ Operation failed: " + (data.error || "Unknown error"));
+              }
+            })
+            .catch(err => {
+              console.error("Error:", err);
+              alert("⚠️ Something went wrong.");
+            });
+          } else {
+            alert('Please enter a subject name before saving.');
+          }
         }
-  
-        currentElement.parentNode.replaceChild(editInput, currentElement);
-        currentElement = editInput;
-  
-        saveButton.style.display = 'inline-block';
-        renameButton.style.display = 'none';
+    
+        function handleRename() {
+          const editInput = document.createElement('input');
+          editInput.type = 'text';
+          editInput.value = currentElement.textContent;
+          editInput.placeholder = 'Edit subject...';
+          editInput.classList.add('subject-input');
+          editInput.style.flex = '1';
+          editInput.style.padding = '8px 10px';
+          editInput.style.border = '1px solid #4b6cb7';
+          editInput.style.borderRadius = '4px';
+          editInput.style.fontSize = '14px';
+          editInput.style.outline = 'none';
+    
+          if (currentElement.hasAttribute('data-id')) {
+            editInput.setAttribute('data-id', currentElement.getAttribute('data-id'));
+          }
+    
+          currentElement.parentNode.replaceChild(editInput, currentElement);
+          currentElement = editInput;
+    
+          saveButton.style.display = 'inline-block';
+          renameButton.style.display = 'none';
+        }
+    
+        saveButton.addEventListener('click', handleSave);
+        renameButton.addEventListener('click', handleRename);
       }
-  
-      saveButton.addEventListener('click', handleSave);
-      renameButton.addEventListener('click', handleRename);
+    
+      // 🔁 Auto-initialize handlers for existing subjects
+      window.onload = () => {
+        const subjectItems = document.querySelectorAll('.content-field');
+        subjectItems.forEach(item => {
+          const saveBtn = item.querySelector('.save-button');
+          const renameBtn = item.querySelector('.rename-button');
+          const checkbox = item.querySelector('.subject-checkbox');
+          const staticText = item.querySelector('.subject-static-text');
+          const addBtn = document.querySelector('#add-subject-btn');
+          attachHandlers(saveBtn, renameBtn, checkbox, staticText, addBtn);
+        });
+      };
+
+      // ✅ Bulk delete selected subjects
+const deleteButton = document.querySelector('#bulk-delete-btn');
+if (deleteButton) {
+  deleteButton.addEventListener('click', function () {
+    const checkedBoxes = document.querySelectorAll('.subject-checkbox:checked');
+    const subjectIds = Array.from(checkedBoxes).map(cb =>
+      cb.nextElementSibling.getAttribute('data-id')
+    );
+
+    if (subjectIds.length === 0) {
+      return alert("⚠️ Please select at least one subject to delete.");
     }
-  
-    // 🔁 Auto-initialize handlers for existing subjects
-    window.onload = () => {
-      const subjectItems = document.querySelectorAll('.content-field');
-      subjectItems.forEach(item => {
-        const saveBtn = item.querySelector('.save-button');
-        const renameBtn = item.querySelector('.rename-button');
-        const checkbox = item.querySelector('.subject-checkbox');
-        const staticText = item.querySelector('.subject-static-text');
-        const addBtn = document.querySelector('#add-subject-btn');
-        attachHandlers(saveBtn, renameBtn, checkbox, staticText, addBtn);
-      });
-    };
-  </script>
-  
-  
-  
-  
-  
-  
+
+    fetch('/delete_subjects', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ subject_ids: subjectIds })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.message) {
+        checkedBoxes.forEach(cb => {
+          const container = cb.closest('.content-field');
+          container.remove();
+        });
+
+
+
+        alert("🗑️ Selected subjects deleted successfully.");
+
+
+
+
+      } else {
+        alert("⚠️ Failed to delete: " + (data.error || "Unknown error"));
+      }
+    })
+    .catch(err => {
+      console.error(err);
+      alert("⚠️ Something went wrong.");
+    });
+  });
+}
+
+    </script>
+    
   
 
 </body>

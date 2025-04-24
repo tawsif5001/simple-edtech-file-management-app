@@ -164,3 +164,26 @@ def update_subject_route():
 
     update_subject(subject_id, session['user_id'], new_name)
     return jsonify({'message': 'Subject updated successfully'})
+
+# ✅ Delete Subject API Route (Bulk Delete)
+@main.route('/delete_subjects', methods=['POST'])
+def delete_subjects_route():
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    data = request.get_json()
+    subject_ids = data.get('subject_ids')
+
+    if not subject_ids or not isinstance(subject_ids, list):
+        return jsonify({'error': 'Invalid input'}), 400
+
+    conn = get_db_connection()
+    conn.executemany(
+        'DELETE FROM subjects WHERE id = ? AND user_id = ?',
+        [(sub_id, session['user_id']) for sub_id in subject_ids]
+    )
+    conn.commit()
+    conn.close()
+
+    return jsonify({'message': 'Subjects deleted successfully'})
+
