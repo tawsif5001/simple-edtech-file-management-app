@@ -201,4 +201,8 @@ def subject_detail(subject_id):
     if not subject:
         return "Subject not found", 404
 
-    return render_template('user/subject_detail.html', subject=subject)
+    return render_template(
+        'user/subject_detail.html',
+        subject=subject,
+        user_name=session.get('user_name')  # ✅ Pass user_name to template
+    )
