@@ -379,7 +379,7 @@
         });
       };
 
-      // ✅ Bulk delete selected subjects
+// ✅ Bulk delete selected subjects
 const deleteButton = document.querySelector('#bulk-delete-btn');
 if (deleteButton) {
   deleteButton.addEventListener('click', function () {
@@ -422,6 +422,31 @@ if (deleteButton) {
     });
   });
 }
+
+
+// ✅ Improved Live Search Without Breaking Layout
+const searchInput = document.querySelector('input[placeholder="Search..."]');
+searchInput.addEventListener('input', function () {
+  const filter = this.value.toLowerCase();
+  const subjects = document.querySelectorAll('.content-field');
+
+  subjects.forEach(subject => {
+    const nameElement = subject.querySelector('.subject-static-text');
+    const text = nameElement?.textContent.toLowerCase() || '';
+
+    if (text.includes(filter)) {
+  subject.style.visibility = 'visible';
+  subject.style.height = 'auto';
+  subject.style.marginTop = '20px';
+} else {
+  subject.style.visibility = 'hidden';
+  subject.style.height = '0';
+  subject.style.marginTop = '0';
+}
+  });
+});
+
+
 
     </script>
     
