@@ -187,3 +187,18 @@ def delete_subjects_route():
 
     return jsonify({'message': 'Subjects deleted successfully'})
 
+
+
+@main.route('/subject/<int:subject_id>')
+def subject_detail(subject_id):
+    if 'user_id' not in session:
+        return redirect(url_for('main.user_login'))
+
+    conn = get_db_connection()
+    subject = conn.execute('SELECT * FROM subjects WHERE id = ? AND user_id = ?', (subject_id, session['user_id'])).fetchone()
+    conn.close()
+
+    if not subject:
+        return "Subject not found", 404
+
+    return render_template('user/subject_detail.html', subject=subject)
