@@ -1,17 +1,11 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session, make_response, jsonify
 from werkzeug.security import check_password_hash, generate_password_hash
-from .models import add_subject, get_subjects_for_user, update_subject, Admin, User
-from .models import db  # ✅ Add this if it's missing
-
-
-import sqlite3
+from .models import add_subject, get_all_subjects, update_subject, Admin, User, Subject, db
 
 main = Blueprint('main', __name__)
 
 # ---------------------------
 # Admin Login
-from .models import Admin  # make sure this is imported at the top
-
 @main.route('/', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -32,7 +26,6 @@ def login():
     response.headers['Expires'] = '0'
     return response
 
-
 # Admin Logout
 @main.route('/logout')
 def logout():
@@ -52,8 +45,6 @@ def dashboard():
     return render_template('admin/admin_dashboard.html')
 
 # Admin creates a new user
-from .models import User  # make sure it's already imported
-
 @main.route('/create-user', methods=['GET', 'POST'])
 def create_user():
     if 'admin_id' not in session:
@@ -76,7 +67,6 @@ def create_user():
             message = "✅ User created successfully."
 
     return render_template('admin/create_user.html', message=message)
-
 
 # ---------------------------
 # ✅ User Login
@@ -101,17 +91,13 @@ def user_login():
     response.headers['Expires'] = '0'
     return response
 
-
 # ✅ User Dashboard Route
-from .models import Subject  # already imported earlier
-
 @main.route('/user-dashboard')
 def user_dashboard():
     if 'user_id' not in session:
         return redirect(url_for('main.user_login'))
 
-    user_id = session['user_id']
-    subjects = Subject.query.filter_by(user_id=user_id).all()
+    subjects = get_all_subjects()
 
     response = make_response(render_template(
         'user/user_dashboard.html',
@@ -123,7 +109,6 @@ def user_dashboard():
     response.headers['Pragma'] = 'no-cache'
     response.headers['Expires'] = '0'
     return response
-
 
 # ✅ User Logout Route
 @main.route('/user-logout', methods=['POST'])
@@ -150,15 +135,10 @@ def add_subject_route():
     if not subject_name:
         return jsonify({'error': 'Subject name is required'}), 400
 
-    user_id = session['user_id']
-    new_subject = Subject(user_id=user_id, name=subject_name)
-    db.session.add(new_subject)
-    db.session.commit()
-
+    add_subject(subject_name)
     return jsonify({'message': 'Subject added successfully'})
 
-
-# ✅ Update Subject API Route (Step 2)
+# ✅ Update Subject API Route
 @main.route('/update_subject', methods=['POST'])
 def update_subject_route():
     if 'user_id' not in session:
@@ -171,7 +151,7 @@ def update_subject_route():
     if not subject_id or not new_name:
         return jsonify({'error': 'Missing data'}), 400
 
-    subject = Subject.query.filter_by(id=subject_id, user_id=session['user_id']).first()
+    subject = Subject.query.filter_by(id=subject_id).first()
     if subject:
         subject.name = new_name
         db.session.commit()
@@ -179,8 +159,7 @@ def update_subject_route():
     else:
         return jsonify({'error': 'Subject not found'}), 404
 
-
-# ✅ Delete Subject API Route (Bulk Delete)
+# ✅ Delete Subject API Route
 @main.route('/delete_subjects', methods=['POST'])
 def delete_subjects_route():
     if 'user_id' not in session:
@@ -192,19 +171,18 @@ def delete_subjects_route():
     if not subject_ids or not isinstance(subject_ids, list):
         return jsonify({'error': 'Invalid input'}), 400
 
-    Subject.query.filter(Subject.id.in_(subject_ids), Subject.user_id == session['user_id']).delete(synchronize_session=False)
+    Subject.query.filter(Subject.id.in_(subject_ids)).delete(synchronize_session=False)
     db.session.commit()
 
     return jsonify({'message': 'Subjects deleted successfully'})
 
-
-
+# ✅ Subject Detail Page
 @main.route('/subject/<int:subject_id>')
 def subject_detail(subject_id):
     if 'user_id' not in session:
         return redirect(url_for('main.user_login'))
 
-    subject = Subject.query.filter_by(id=subject_id, user_id=session['user_id']).first()
+    subject = Subject.query.filter_by(id=subject_id).first()
 
     if not subject:
         return "Subject not found", 404
@@ -214,4 +192,3 @@ def subject_detail(subject_id):
         subject=subject,
         user_name=session.get('user_name')
     )
-
