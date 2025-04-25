@@ -1,23 +1,27 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session, make_response, jsonify
 from werkzeug.security import check_password_hash, generate_password_hash
-from .models import get_db_connection, add_subject, get_subjects_for_user, update_subject  # ✅ included update_subject
+from .models import add_subject, get_subjects_for_user, update_subject, Admin, User
+from .models import db  # ✅ Add this if it's missing
+
+
 import sqlite3
 
 main = Blueprint('main', __name__)
 
 # ---------------------------
 # Admin Login
+from .models import Admin  # make sure this is imported at the top
+
 @main.route('/', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
         email = request.form['email']
         password = request.form['password']
-        conn = get_db_connection()
-        admin = conn.execute('SELECT * FROM admin WHERE email = ?', (email,)).fetchone()
-        conn.close()
 
-        if admin and check_password_hash(admin['password'], password):
-            session['admin_id'] = admin['id']
+        admin = Admin.query.filter_by(email=email).first()
+
+        if admin and check_password_hash(admin.password, password):
+            session['admin_id'] = admin.id
             return redirect(url_for('main.dashboard'))
         else:
             flash('Invalid email or password', 'danger')
@@ -27,6 +31,7 @@ def login():
     response.headers['Pragma'] = 'no-cache'
     response.headers['Expires'] = '0'
     return response
+
 
 # Admin Logout
 @main.route('/logout')
@@ -47,6 +52,8 @@ def dashboard():
     return render_template('admin/admin_dashboard.html')
 
 # Admin creates a new user
+from .models import User  # make sure it's already imported
+
 @main.route('/create-user', methods=['GET', 'POST'])
 def create_user():
     if 'admin_id' not in session:
@@ -59,18 +66,17 @@ def create_user():
         password = request.form['userpassword']
         hashed_password = generate_password_hash(password)
 
-        conn = sqlite3.connect('database.db')
-        cursor = conn.cursor()
-        try:
-            cursor.execute('INSERT INTO users (name, email, password) VALUES (?, ?, ?)', (name, email, hashed_password))
-            conn.commit()
-            message = "✅ User created successfully."
-        except sqlite3.IntegrityError:
+        existing_user = User.query.filter_by(email=email).first()
+        if existing_user:
             message = "⚠️ Email already exists."
-        finally:
-            conn.close()
+        else:
+            new_user = User(name=name, email=email, password=hashed_password)
+            db.session.add(new_user)
+            db.session.commit()
+            message = "✅ User created successfully."
 
     return render_template('admin/create_user.html', message=message)
+
 
 # ---------------------------
 # ✅ User Login
@@ -80,15 +86,11 @@ def user_login():
         email = request.form['email']
         password = request.form['password']
 
-        conn = sqlite3.connect('database.db')
-        cursor = conn.cursor()
-        cursor.execute('SELECT * FROM users WHERE email = ?', (email,))
-        user = cursor.fetchone()
-        conn.close()
+        user = User.query.filter_by(email=email).first()
 
-        if user and check_password_hash(user[3], password):
-            session['user_id'] = user[0]
-            session['user_name'] = user[1]
+        if user and check_password_hash(user.password, password):
+            session['user_id'] = user.id
+            session['user_name'] = user.name
             return redirect(url_for('main.user_dashboard'))
         else:
             return render_template('user/user_login.html', error="Invalid email or password")
@@ -99,14 +101,17 @@ def user_login():
     response.headers['Expires'] = '0'
     return response
 
+
 # ✅ User Dashboard Route
+from .models import Subject  # already imported earlier
+
 @main.route('/user-dashboard')
 def user_dashboard():
     if 'user_id' not in session:
         return redirect(url_for('main.user_login'))
 
     user_id = session['user_id']
-    subjects = get_subjects_for_user(user_id)
+    subjects = Subject.query.filter_by(user_id=user_id).all()
 
     response = make_response(render_template(
         'user/user_dashboard.html',
@@ -118,6 +123,7 @@ def user_dashboard():
     response.headers['Pragma'] = 'no-cache'
     response.headers['Expires'] = '0'
     return response
+
 
 # ✅ User Logout Route
 @main.route('/user-logout', methods=['POST'])
@@ -145,9 +151,12 @@ def add_subject_route():
         return jsonify({'error': 'Subject name is required'}), 400
 
     user_id = session['user_id']
-    add_subject(user_id, subject_name)
+    new_subject = Subject(user_id=user_id, name=subject_name)
+    db.session.add(new_subject)
+    db.session.commit()
 
     return jsonify({'message': 'Subject added successfully'})
+
 
 # ✅ Update Subject API Route (Step 2)
 @main.route('/update_subject', methods=['POST'])
@@ -162,8 +171,14 @@ def update_subject_route():
     if not subject_id or not new_name:
         return jsonify({'error': 'Missing data'}), 400
 
-    update_subject(subject_id, session['user_id'], new_name)
-    return jsonify({'message': 'Subject updated successfully'})
+    subject = Subject.query.filter_by(id=subject_id, user_id=session['user_id']).first()
+    if subject:
+        subject.name = new_name
+        db.session.commit()
+        return jsonify({'message': 'Subject updated successfully'})
+    else:
+        return jsonify({'error': 'Subject not found'}), 404
+
 
 # ✅ Delete Subject API Route (Bulk Delete)
 @main.route('/delete_subjects', methods=['POST'])
@@ -177,13 +192,8 @@ def delete_subjects_route():
     if not subject_ids or not isinstance(subject_ids, list):
         return jsonify({'error': 'Invalid input'}), 400
 
-    conn = get_db_connection()
-    conn.executemany(
-        'DELETE FROM subjects WHERE id = ? AND user_id = ?',
-        [(sub_id, session['user_id']) for sub_id in subject_ids]
-    )
-    conn.commit()
-    conn.close()
+    Subject.query.filter(Subject.id.in_(subject_ids), Subject.user_id == session['user_id']).delete(synchronize_session=False)
+    db.session.commit()
 
     return jsonify({'message': 'Subjects deleted successfully'})
 
@@ -194,9 +204,7 @@ def subject_detail(subject_id):
     if 'user_id' not in session:
         return redirect(url_for('main.user_login'))
 
-    conn = get_db_connection()
-    subject = conn.execute('SELECT * FROM subjects WHERE id = ? AND user_id = ?', (subject_id, session['user_id'])).fetchone()
-    conn.close()
+    subject = Subject.query.filter_by(id=subject_id, user_id=session['user_id']).first()
 
     if not subject:
         return "Subject not found", 404
@@ -204,5 +212,6 @@ def subject_detail(subject_id):
     return render_template(
         'user/subject_detail.html',
         subject=subject,
-        user_name=session.get('user_name')  # ✅ Pass user_name to template
+        user_name=session.get('user_name')
     )
+
