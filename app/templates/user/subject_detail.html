@@ -3,10 +3,102 @@
 <head>
   <meta charset="UTF-8">
   <title>{{ subject.name }}</title>
+  <style>
+    .form-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.4);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 2000;
+    }
+
+    .form-card {
+      width: 360px;
+      background-color: #ffffff;
+      border: 2px solid #007acc;
+      border-radius: 12px;
+      padding: 20px 30px;
+      font-family: Arial, sans-serif;
+      position: relative;
+    }
+
+    .form-header {
+      background-color: #007acc;
+      color: #ffffff;
+      font-size: 22px;
+      text-align: center;
+      padding: 18px;
+      border-radius: 10px 10px 0 0;
+      margin: -20px -30px 20px -30px;
+    }
+
+    label {
+      font-weight: bold;
+      font-size: 14px;
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    input[type="text"],
+    input[type="file"] {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 16px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      box-sizing: border-box;
+    }
+
+    .upload-group {
+      position: relative;
+      margin-bottom: 16px;
+    }
+
+    .remove-btn {
+      position: absolute;
+      right: 6px;
+      top: 50%;
+      transform: translateY(-50%);
+      background-color: #ff4d4d;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      font-size: 14px;
+      width: 22px;
+      height: 22px;
+      line-height: 20px;
+      text-align: center;
+      cursor: pointer;
+      display: none;
+    }
+
+    .submit-btn {
+      padding: 12px 30px;
+      font-size: 15px;
+      background-color: #007acc;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      display: block;
+      margin: 0 auto;
+    }
+
+    .form-footer {
+      font-size: 11px;
+      color: #666;
+      text-align: center;
+      margin-top: 20px;
+    }
+  </style>
 </head>
 <body>
-  
- 
+
 <!-- Fancy Full-Width Navbar -->
 <div style="
   width: 100%;
@@ -54,38 +146,41 @@
   </form>
 </div>
 
-
-<!--Subject Heading, Back to the Dashboard, Upload FIle Button-->
+<!--Subject Heading, Back to the Dashboard, Upload File Button-->
 <div style="padding-top: 70px; padding-bottom: 30px; padding-left: 20px; padding-right: 20px; display: flex; justify-content: space-between; align-items: center;">
-    <div>
-        
+  <div>
     <h2 style="margin-top: 5px;">{{ subject.name }}</h2>
+  </div>
+  <div>
+    <button id="uploadBtn" style="
+      background: linear-gradient(90deg, #4b6cb7, #182848);
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 14px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+      transition: all 0.3s ease;
+    "
+    onmouseover="this.style.opacity='0.9';"
+    onmouseout="this.style.opacity='1';"
+    >Upload File</button>
+  </div>
+</div>
 
-    </div>
-    <div>
-      <button style="
-        background: linear-gradient(90deg, #4b6cb7, #182848);
-        color: white;
-        border: none;
-        padding: 10px 16px;
-        border-radius: 5px;
-        cursor: pointer;
-        font-size: 14px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-        transition: all 0.3s ease;
-      "
-      onmouseover="this.style.opacity='0.9';"
-      onmouseout="this.style.opacity='1';"
-      >Upload File</button>
-
-      
-
-      
-      
+<!-- Upload Form Modal -->
+<div class="form-overlay" id="formOverlay">
+  <div class="form-card" id="uploadForm">
+    <div class="form-header">Add Course Files</div>
+    <label>Upload PDF</label>
+    <div id="fileUploadsContainer"></div>
+    <input type="submit" value="Submit" class="submit-btn" id="submitBtn" />
+    <div class="form-footer">
+      <p>&copy; 2025 Innospace. All rights reserved.</p>
     </div>
   </div>
-  
-  
+</div>
 
 <!-- Footer Section -->
 <div style="
@@ -105,7 +200,86 @@
   <p style="margin: 0;">&copy; 2025 Innospace. All rights reserved.</p>
 </div>
 
+<script>
+  const fileUploadsContainer = document.getElementById('fileUploadsContainer');
+  const uploadBtn = document.getElementById('uploadBtn');
+  const formOverlay = document.getElementById('formOverlay');
+  const uploadForm = document.getElementById('uploadForm');
+
+  function addFileInput() {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'upload-group';
+
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.name = 'pdf[]';
+    input.accept = 'application/pdf';
+    input.multiple = true;
+
+    const removeBtn = document.createElement('button');
+    removeBtn.innerHTML = '×';
+    removeBtn.className = 'remove-btn';
+    removeBtn.title = 'Remove this file';
+
+    removeBtn.addEventListener('click', function (e) {
+      e.preventDefault();
+      fileUploadsContainer.removeChild(wrapper);
+      ensureBlankInputExists();
+    });
+
+    input.addEventListener('change', function () {
+      if (input.files.length > 0) {
+        removeBtn.style.display = 'inline-block';
+        ensureBlankInputExists();
+      } else {
+        removeBtn.style.display = 'none';
+      }
+    });
+
+    wrapper.appendChild(input);
+    wrapper.appendChild(removeBtn);
+    fileUploadsContainer.appendChild(wrapper);
+
+    ensureBlankInputExists();
+  }
+
+  function ensureBlankInputExists() {
+    const fileInputs = fileUploadsContainer.querySelectorAll('input[type="file"]');
+    const hasEmpty = Array.from(fileInputs).some(input => input.files.length === 0);
+    if (!hasEmpty) {
+      addFileInput();
+    }
+  }
+
+  addFileInput();
+
+  // Show the form modal
+  uploadBtn.addEventListener('click', () => {
+    formOverlay.style.display = 'flex';
+  });
+
+  // Hide the form if clicked outside the card
+  formOverlay.addEventListener('click', function (e) {
+    if (!uploadForm.contains(e.target)) {
+      formOverlay.style.display = 'none';
+    }
+  });
+
+  // Submit button hover effect
+  const submitBtn = document.getElementById('submitBtn');
+  submitBtn.addEventListener('mouseover', function () {
+    submitBtn.style.backgroundColor = '#005b99';
+    submitBtn.style.transform = 'scale(1.05)';
+    submitBtn.style.boxShadow = '0 8px 16px rgba(0, 122, 204, 0.3)';
+    submitBtn.style.transition = 'all 0.3s ease';
+  });
+
+  submitBtn.addEventListener('mouseout', function () {
+    submitBtn.style.backgroundColor = '#007acc';
+    submitBtn.style.transform = 'scale(1)';
+    submitBtn.style.boxShadow = 'none';
+  });
+</script>
 
 </body>
 </html>
-

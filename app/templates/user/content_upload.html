@@ -3,26 +3,13 @@
 <head>
     <title>Course Add Form</title>
     <style>
-        body {
-            background-color: #e9f5f9;
-            margin: 0;
-            height: 100vh;
-            font-family: Arial, sans-serif;
-        }
-
-        .form-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100%;
-        }
-
         .form-card {
             width: 360px;
             background-color: #ffffff;
             border: 2px solid #007acc;
             border-radius: 12px;
-            overflow: hidden;
+            padding: 20px 30px;
+            font-family: Arial, sans-serif;
         }
 
         .form-header {
@@ -31,39 +18,30 @@
             font-size: 22px;
             text-align: center;
             padding: 18px;
+            border-radius: 10px 10px 0 0;
+            margin: -20px -30px 20px -30px;
         }
 
-        .form-body {
-            padding: 20px 30px;
-        }
-
-        .form-body label {
+        label {
             font-weight: bold;
             font-size: 14px;
             display: block;
             margin-bottom: 6px;
         }
 
-        .form-body input[type="text"] {
+        input[type="text"],
+        input[type="file"] {
             width: 100%;
             padding: 10px;
             margin-bottom: 16px;
             border: 1px solid #ccc;
             border-radius: 5px;
+            box-sizing: border-box;
         }
 
         .upload-group {
             position: relative;
             margin-bottom: 16px;
-        }
-
-        .upload-group input[type="file"] {
-            width: 100%;
-            padding: 8px 36px 8px 8px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            background-color: #fff;
-            box-sizing: border-box;
         }
 
         .remove-btn {
@@ -97,33 +75,25 @@
         }
 
         .form-footer {
-            background-color: #f0f0f0;
-            padding: 10px;
             font-size: 11px;
             color: #666;
             text-align: center;
+            margin-top: 20px;
         }
     </style>
 </head>
 <body>
 
-<div class="form-container">
-    <div class="form-card">
-        <div class="form-header">Add Course Files</div>
-        <div class="form-body">
-            <label for="course_title">Course Title</label>
-            <input type="text" name="course_title" placeholder="Enter course title" />
+<div class="form-card">
+    <div class="form-header">Add Course Files</div>
 
-            <label>Upload PDF</label>
-            <div id="fileUploadsContainer"></div>
+    <label>Upload PDF</label>
+    <div id="fileUploadsContainer"></div>
 
-            <input type="submit" value="Submit" class="submit-btn" id="submitBtn" />
-        </div>
-        <div class="form-footer">
-            <footer style="text-align: center; padding: 1px; background-color: #f2f2f2;">
-                <p>&copy; 2025 Innospace. All rights reserved.</p>
-            </footer>
-        </div>
+    <input type="submit" value="Submit" class="submit-btn" id="submitBtn" />
+
+    <div class="form-footer">
+        <p>&copy; 2025 Innospace. All rights reserved.</p>
     </div>
 </div>
 
@@ -177,7 +147,7 @@
 
     addFileInput();
 
-    // Submit button hover effect (JavaScript-only)
+    // Submit button hover effect
     const submitBtn = document.getElementById('submitBtn');
 
     submitBtn.addEventListener('mouseover', function () {
