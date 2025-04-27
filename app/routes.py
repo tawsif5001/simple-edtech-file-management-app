@@ -277,3 +277,12 @@ def download_subjects():
         download_name='selected_subjects.zip',
         as_attachment=True
     )
+
+
+
+
+
+@main.route('/')
+def home():
+    return redirect(url_for('main.user_login'))
+
