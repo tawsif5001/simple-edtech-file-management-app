@@ -283,7 +283,8 @@ def download_subjects():
 
 
 @main.route('/home')
-def home():
+def go_home():
     return redirect(url_for('main.user_login'))
+
 
 
