@@ -213,19 +213,22 @@
             </td>
             <td style="padding: 12px;">N/A</td> <!-- MD File -->
             <td style="padding: 12px;">
-              <button style="
-                background-color: #ff4d4d;
-                color: white;
-                border: none;
-                padding: 8px 14px;
-                border-radius: 5px;
-                font-size: 14px;
-                cursor: pointer;
-                box-shadow: 0 4px 6px rgba(0,0,0,0.2);
-                transition: background-color 0.3s ease;">
-                Delete
-              </button>
-            </td>
+                <form action="{{ url_for('main.delete_file', file_id=file.id) }}" method="post" style="display: inline;">
+                  <button type="submit" style="
+                    background-color: #ff4d4d;
+                    color: white;
+                    border: none;
+                    padding: 8px 14px;
+                    border-radius: 5px;
+                    font-size: 14px;
+                    cursor: pointer;
+                    box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+                    transition: background-color 0.3s ease;">
+                    Delete
+                  </button>
+                </form>
+              </td>
+              
           </tr>
         {% endfor %}
       </tbody>

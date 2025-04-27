@@ -222,3 +222,28 @@ def upload_content(subject_id):
             create_content(subject_id, filename, "Uploaded PDF", file_path)
 
     return redirect(url_for('main.subject_detail', subject_id=subject_id))
+
+
+
+
+
+# ✅ Delete file 
+@main.route('/delete_file/<int:file_id>', methods=['POST'])
+def delete_file(file_id):
+    if 'user_id' not in session:
+        return redirect(url_for('main.user_login'))
+
+    file_record = Content.query.get(file_id)
+
+    if not file_record:
+        return 'File not found', 404
+
+    # Delete the file from storage
+    if file_record.file_path and os.path.exists(file_record.file_path):
+        os.remove(file_record.file_path)
+
+    # Delete the database record
+    db.session.delete(file_record)
+    db.session.commit()
+
+    return redirect(url_for('main.subject_detail', subject_id=file_record.subject_id))
