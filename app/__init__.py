@@ -5,7 +5,8 @@ def create_app():
     app = Flask(__name__)
     app.secret_key = 'your_secret_key_here'
 
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:admin123@localhost/md_project_db'
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://freedb_mytestuser:Test@12345@sql.freedb.tech/freedb_mytestdb'
+
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     db.init_app(app)  # ✅ Init shared db instance
