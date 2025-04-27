@@ -1,9 +1,10 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, session, make_response, jsonify, current_app
+from flask import Blueprint, render_template, request, redirect, url_for, flash, session, make_response, jsonify, current_app, send_file
 from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
 import os
+import io
+import zipfile
 from .models import add_subject, get_all_subjects, update_subject, Admin, User, Subject, Content, db, create_content
-
 
 main = Blueprint('main', __name__)
 
@@ -196,10 +197,9 @@ def subject_detail(subject_id):
     return render_template(
         'user/subject_detail.html',
         subject=subject,
-        uploaded_files=uploaded_files,   # Pass uploaded files to template
+        uploaded_files=uploaded_files,
         user_name=session.get('user_name')
     )
-
 
 # ✅ Step 2: Upload Content (File Upload Route)
 @main.route('/upload_content/<int:subject_id>', methods=['POST'])
@@ -223,11 +223,7 @@ def upload_content(subject_id):
 
     return redirect(url_for('main.subject_detail', subject_id=subject_id))
 
-
-
-
-
-# ✅ Delete file 
+# ✅ Delete File
 @main.route('/delete_file/<int:file_id>', methods=['POST'])
 def delete_file(file_id):
     if 'user_id' not in session:
@@ -247,3 +243,37 @@ def delete_file(file_id):
     db.session.commit()
 
     return redirect(url_for('main.subject_detail', subject_id=file_record.subject_id))
+
+# ✨ ✅ New Download Subjects Route
+@main.route('/download_subjects', methods=['POST'])
+def download_subjects():
+    subject_ids = request.form.getlist('subject_ids')
+
+    if not subject_ids:
+        return "No subjects selected.", 400
+
+    memory_file = io.BytesIO()
+    with zipfile.ZipFile(memory_file, 'w', zipfile.ZIP_DEFLATED) as zipf:
+        for subject_id in subject_ids:
+            subject = Subject.query.get(subject_id)
+            if not subject:
+                continue
+
+            contents = Content.query.filter_by(subject_id=subject_id).all()
+
+            for content in contents:
+                file_path = content.file_path
+                if file_path and os.path.exists(file_path):
+                    subject_folder = secure_filename(subject.name)
+                    file_name = os.path.basename(file_path)
+                    arcname = os.path.join(subject_folder, file_name)
+                    zipf.write(file_path, arcname=arcname)
+
+    memory_file.seek(0)
+
+    return send_file(
+        memory_file,
+        mimetype='application/zip',
+        download_name='selected_subjects.zip',
+        as_attachment=True
+    )

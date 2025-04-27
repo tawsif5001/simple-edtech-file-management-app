@@ -181,7 +181,7 @@
   >Delete</button>
 
   <!-- Download Button -->
-  <button style="
+  <button id="bulk-download-btn" style="
     background: linear-gradient(90deg, #4b6cb7, #182848);
     color: white;
     border: none;
@@ -195,7 +195,7 @@
   onmouseover="this.style.opacity='0.9';"
   onmouseout="this.style.opacity='1';"
   >Download</button>
-</div>
+
 
 
 
@@ -425,6 +425,40 @@ if (deleteButton) {
 }
 
 
+// ✅ Bulk Download Selected Subjects
+const downloadButton = document.querySelector('#bulk-download-btn');
+if (downloadButton) {
+  downloadButton.addEventListener('click', function () {
+    const checkedBoxes = document.querySelectorAll('.subject-checkbox:checked');
+    const subjectIds = Array.from(checkedBoxes).map(cb =>
+      cb.nextElementSibling.getAttribute('data-id')
+    );
+
+    if (subjectIds.length === 0) {
+      return alert("⚠️ Please select at least one subject to download.");
+    }
+
+    // Create a hidden form to POST selected subject IDs
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '/download_subjects';
+    form.style.display = 'none';
+
+    subjectIds.forEach(id => {
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = 'subject_ids';
+      input.value = id;
+      form.appendChild(input);
+    });
+
+    document.body.appendChild(form);
+    form.submit();
+  });
+}
+
+
+
 // ✅ Improved Live Search Without Breaking Layout
 const searchInput = document.querySelector('input[placeholder="Search..."]');
 searchInput.addEventListener('input', function () {
@@ -446,6 +480,8 @@ searchInput.addEventListener('input', function () {
 }
   });
 });4
+
+
 
 
 
