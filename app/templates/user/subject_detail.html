@@ -205,16 +205,26 @@
 
 <!-- Upload Form Modal -->
 <div class="form-overlay" id="formOverlay">
-  <div class="form-card" id="uploadForm">
-    <div class="form-header">Add Course Files</div>
-    <label>Upload PDF</label>
-    <div id="fileUploadsContainer"></div>
-    <input type="submit" value="Submit" class="submit-btn" id="submitBtn" />
-    <div class="form-footer">
-      <p>&copy; 2025 Innospace. All rights reserved.</p>
+    <div class="form-card" id="uploadForm">
+      <div class="form-header">Add Course Files</div>
+  
+      <!-- 🟰🆕 Updated form starts here -->
+      <form action="{{ url_for('main.upload_content', subject_id=subject.id) }}" method="post" enctype="multipart/form-data">
+
+        <label>Upload PDF</label>
+        <div id="fileUploadsContainer">
+          <input type="file" name="files" multiple accept=".pdf">
+        </div>
+        <input type="submit" value="Submit" class="submit-btn" id="submitBtn" />
+      </form>
+      <!-- 🟰🆕 Updated form ends here -->
+  
+      <div class="form-footer">
+        <p>&copy; 2025 Innospace. All rights reserved.</p>
+      </div>
     </div>
   </div>
-</div>
+  
 
 <!-- Footer Section -->
 <div style="

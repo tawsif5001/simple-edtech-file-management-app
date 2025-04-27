@@ -1,6 +1,8 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, session, make_response, jsonify
+from flask import Blueprint, render_template, request, redirect, url_for, flash, session, make_response, jsonify, current_app
 from werkzeug.security import check_password_hash, generate_password_hash
-from .models import add_subject, get_all_subjects, update_subject, Admin, User, Subject, db
+from werkzeug.utils import secure_filename
+import os
+from .models import add_subject, get_all_subjects, update_subject, Admin, User, Subject, db, create_content
 
 main = Blueprint('main', __name__)
 
@@ -192,3 +194,25 @@ def subject_detail(subject_id):
         subject=subject,
         user_name=session.get('user_name')
     )
+
+# ✅ Step 2: Upload Content (File Upload Route)
+@main.route('/upload_content/<int:subject_id>', methods=['POST'])
+def upload_content(subject_id):
+    if 'files' not in request.files:
+        return 'No file part', 400
+
+    files = request.files.getlist('files')
+
+    for file in files:
+        if file and file.filename.endswith('.pdf'):
+            filename = secure_filename(file.filename)
+
+            upload_folder = os.path.join(current_app.root_path, 'static', 'uploads', str(subject_id))
+            os.makedirs(upload_folder, exist_ok=True)
+
+            file_path = os.path.join(upload_folder, filename)
+            file.save(file_path)
+
+            create_content(subject_id, filename, "Uploaded PDF", file_path)
+
+    return redirect(url_for('main.subject_detail', subject_id=subject_id))
