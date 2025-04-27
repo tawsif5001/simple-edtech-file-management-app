@@ -194,8 +194,42 @@
         </tr>
       </thead>
       <tbody id="uploadedFilesBody">
-        <!-- Dynamic rows for uploaded files will appear here -->
+        {% for file in uploaded_files %}
+          <tr style="border-bottom: 1px solid #ddd;">
+            <td style="padding: 12px;">{{ loop.index }}</td> <!-- Serial Number -->
+            <td style="padding: 12px;">{{ file.file_name }}</td> <!-- File Name -->
+            <td style="padding: 12px;">
+              <a href="{{ url_for('static', filename='uploads/' ~ file.subject_id ~ '/' ~ file.file_name) }}" target="_blank" style="
+                background-color: #28a745; 
+                color: white; 
+                padding: 8px 14px; 
+                border-radius: 5px; 
+                text-decoration: none;
+                font-size: 14px;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+                transition: background-color 0.3s ease;">
+                Download
+              </a>
+            </td>
+            <td style="padding: 12px;">N/A</td> <!-- MD File -->
+            <td style="padding: 12px;">
+              <button style="
+                background-color: #ff4d4d;
+                color: white;
+                border: none;
+                padding: 8px 14px;
+                border-radius: 5px;
+                font-size: 14px;
+                cursor: pointer;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+                transition: background-color 0.3s ease;">
+                Delete
+              </button>
+            </td>
+          </tr>
+        {% endfor %}
       </tbody>
+      
     </table>
   </div>
 

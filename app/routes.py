@@ -2,7 +2,8 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
 import os
-from .models import add_subject, get_all_subjects, update_subject, Admin, User, Subject, db, create_content
+from .models import add_subject, get_all_subjects, update_subject, Admin, User, Subject, Content, db, create_content
+
 
 main = Blueprint('main', __name__)
 
@@ -189,11 +190,16 @@ def subject_detail(subject_id):
     if not subject:
         return "Subject not found", 404
 
+    # ✅ Fetch uploaded files for this subject
+    uploaded_files = Content.query.filter_by(subject_id=subject_id).all()
+
     return render_template(
         'user/subject_detail.html',
         subject=subject,
+        uploaded_files=uploaded_files,   # Pass uploaded files to template
         user_name=session.get('user_name')
     )
+
 
 # ✅ Step 2: Upload Content (File Upload Route)
 @main.route('/upload_content/<int:subject_id>', methods=['POST'])
